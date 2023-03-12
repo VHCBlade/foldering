@@ -17,25 +17,27 @@ regexes_in_order = [
 ]
 
 for file_name in os.listdir(input_dir):
-    if os.path.isfile(os.path.join(input_dir, file_name)):
+    if not os.path.isfile(os.path.join(input_dir, file_name)):
 
-        for regex_pair in regexes_in_order:
-            folder_name, regex = regex_pair
-            pattern = re.compile(regex, re.IGNORECASE)
+        continue
 
-            if not bool(pattern.search(file_name)):
-                continue
+    for regex_pair in regexes_in_order:
+        folder_name, regex = regex_pair
+        pattern = re.compile(regex, re.IGNORECASE)
 
-            print("Sorting " + file_name + " into " + folder_name + "...")
+        if not bool(pattern.search(file_name)):
+            continue
 
-            folder_path = os.path.join(output_dir, folder_name)
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
+        print("Sorting " + file_name + " into " + folder_name + "...")
 
-            # Move the file to the appropriate folder
-            input_path = os.path.join(input_dir, file_name)
-            output_path = os.path.join(folder_path, file_name)
-            shutil.copy(input_path, output_path)
-            break
+        folder_path = os.path.join(output_dir, folder_name)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        # Move the file to the appropriate folder
+        input_path = os.path.join(input_dir, file_name)
+        output_path = os.path.join(folder_path, file_name)
+        shutil.copy(input_path, output_path)
+        break
 
 input("Done...")
