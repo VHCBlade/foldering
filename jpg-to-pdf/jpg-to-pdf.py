@@ -1,10 +1,11 @@
 import os
 import subprocess
 import configparser
+import re
 import shutil
 
 config = configparser.ConfigParser()
-config.read('jpg-to-pdf/config.ini')
+config.read('full/config.ini')
 jpgToPdfConfig = config['jpg-to-pdf']
 
 input_dir = jpgToPdfConfig["input"]
@@ -25,18 +26,31 @@ image_formats = []
 
 while True:
     try:
-        image_format = renameConfig['image_format_{}'.format(counter)]
+        image_format = jpgToPdfConfig['image_format_{}'.format(counter)]
         counter += 1
-        conversion_pairs.append(image_format)
+        image_formats.append(image_format)
     except:
         break
 
 print('Starting Program...')
-print('Conversion Options:')
-for format_counter in range(len(conversion_pairs)):
-    image_format = conversion_pairs[format_counter]
+print('Image File Format Options:')
+for format_counter in range(len(image_formats)):
+    image_format = image_formats[format_counter]
     print('{0}: {1}.pdf'.format(
         format_counter + 1, image_format))
+
+choice = input('Choose your conversion option (number): ')
+
+try:
+    choiceInt = int(choice)
+    if choiceInt == 0:
+        raise 1
+    chosen_format = image_formats[choiceInt - 1]
+except:
+    input('{} is not a valid option Exiting...'.format(choice))
+    exit(1)
+
+print('Chose [{}] {}...'.format(choiceInt, chosen_format))
 
 
 def install(package):
@@ -56,7 +70,21 @@ except ImportError:
     from fpdf import FPDF
 
 
-def convert_images_to_pdf(input_dir, output_dir, output_name):
+def convert_image_list_to_pdf(images, output_dir, output_name, format):
+    images.sort()
+
+    pdf = FPDF(unit='pt', format=format)
+
+    for image in images:
+        pdf.add_page()
+        pdf.image(image, 0, 0, w=pdf.w_pt, h=pdf.h_pt)
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    pdf.output(os.path.join(output_dir, output_name), 'F')
+
+
+def convert_images_to_pdf(input_dir, output_dir):
     image_extensions = ['.jpg', '.jpeg', '.png', '.bmp']
     images = []
 
@@ -64,28 +92,43 @@ def convert_images_to_pdf(input_dir, output_dir, output_name):
         if any(filename.endswith(ext) for ext in image_extensions):
             images.append(os.path.join(input_dir, filename))
 
-    convert_image_list_to_pdf(images, output_dir, output_name, format)
+    pdfMap = {}
 
+    groupCount = 0
+    splitFormat = chosen_format.split("Q")
+    finalFormat = ""
 
-def convert_image_list_to_pdf(images, output_dir, output_name, format):
-    images.sort()
+    for splitVal in splitFormat:
+        if splitVal is not "":
+            finalFormat += "(" + splitVal.replace("X", ".") + ")"
+            groupCount += 1
+        finalFormat += '.'
 
-    pdf = FPDF(unit='pt', format=format)
+    finalFormat = finalFormat[:-1]
 
-    # Add images to PDF
     for image in images:
-        pdf.add_page()
-        pdf.image(image, 0, 0, w=pdf.w_pt, h=pdf.h_pt)
+        fileName, fileExt = os.path.splitext(image)
+        justFileName = os.path.basename(fileName)
+        match = re.fullmatch(finalFormat, justFileName)
+        if match is None:
+            continue
 
-    # Save PDF to output directory
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    pdf.output(os.path.join(output_dir, output_name), 'F')
+        pdfName = ""
+        for i in range(groupCount):
+            pdfName += match.group(i + 1)
+        print("Funnelling into " + pdfName + ".pdf file " + justFileName)
+
+        if pdfName not in pdfMap:
+            pdfMap[pdfName] = []
+
+        pdfMap[pdfName].append(image)
+
+    for pdfName in pdfMap.keys():
+        convert_image_list_to_pdf(
+            pdfMap[pdfName], output_dir, pdfName + ".pdf", format)
 
 
-# Example usage
-output_name = 'output.pdf'
+convert_images_to_pdf(input_dir, output_dir)
 
-convert_images_to_pdf(input_dir, output_dir, output_name)
 
 input("Done...")
