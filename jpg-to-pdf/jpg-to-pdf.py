@@ -117,6 +117,8 @@ def convert_images_to_pdf(input_dir, output_dir):
         for i in range(groupCount):
             pdfName += match.group(i + 1)
         print("Funnelling into " + pdfName + ".pdf file " + justFileName)
+        # Optional to save everything to the same PDF
+        # pdfName = "output.pdf"
 
         if pdfName not in pdfMap:
             pdfMap[pdfName] = []

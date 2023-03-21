@@ -1,6 +1,8 @@
 full/
 package/
 package_compression/
+package*/
 
 package.zip
 package_compression.zip
+package*.zip
