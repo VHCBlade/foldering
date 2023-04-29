@@ -6,7 +6,7 @@ output_dir = "output/"
 
 
 def compress_video(input_file_path, output_file_path, crf=23):
-    ffmpeg_cmd = f'ffmpeg -i {input_file_path} -c:v libx264 -crf {crf} -preset slow -c:a copy {output_file_path}'
+    ffmpeg_cmd = f'ffmpeg -i {input_file_path} -c:v libx264 -crf {crf} -preset veryslow -vf scale=-1:720 -c:a copy {output_file_path}'
 
     subprocess.call(ffmpeg_cmd, shell=True)
 

@@ -6,3 +6,6 @@ package*/
 package.zip
 package_compression.zip
 package*.zip
+
+compression/input/
+compression/output/
